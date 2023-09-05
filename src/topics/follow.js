@@ -8,32 +8,29 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-const database_1 = __importDefault(require("../database"));
-const notifications_1 = __importDefault(require("../notifications"));
-const privileges_1 = __importDefault(require("../privileges"));
-const plugins_1 = __importDefault(require("../plugins"));
-const utils_1 = __importDefault(require("../utils"));
+const db = require("../database");
+const notifications = require("../notifications");
+const privileges = require("../privileges");
+const plugins = require("../plugins");
+const utils = require("../utils");
 function addToSets(set1, set2, tid, uid) {
     return __awaiter(this, void 0, void 0, function* () {
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        yield database_1.default.setAdd(set1, uid);
+        yield db.setAdd(set1, uid);
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        yield database_1.default.sortedSetAdd(set2, Date.now(), tid);
+        yield db.sortedSetAdd(set2, Date.now(), tid);
     });
 }
 function removeFromSets(set1, set2, tid, uid) {
     return __awaiter(this, void 0, void 0, function* () {
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        yield database_1.default.setRemove(set1, uid);
+        yield db.setRemove(set1, uid);
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        yield database_1.default.sortedSetRemove(set2, tid);
+        yield db.sortedSetRemove(set2, tid);
     });
 }
 function follow(tid, uid) {
@@ -61,19 +58,19 @@ function isIgnoringOrFollowing(set, tids, uid) {
         if (!Array.isArray(tids)) {
             return;
         }
-        if (parseInt(uid, 10) <= 0) {
+        if (uid <= 0) {
             return tids.map(() => false);
         }
         const keys = tids.map(tid => `tid:${tid}:${set}`);
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        return yield database_1.default.isMemberOfSets(keys, uid);
+        return yield db.isMemberOfSets(keys, uid);
     });
 }
 function FollowTopics(Topics) {
     function setWatching(method1, method2, hook, tid, uid) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (!(parseInt(uid, 10) > 0)) {
+            if (!(uid > 0)) {
                 throw new Error('[[error:not-logged-in]]');
             }
             // The next line calls a function in a module that has not been updated to TS yet
@@ -88,7 +85,7 @@ function FollowTopics(Topics) {
             // The next line calls a function in a module that has not been updated to TS yet
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             yield method2(tid, uid);
-            yield plugins_1.default.hooks.fire(hook, { uid: uid, tid: tid });
+            yield plugins.hooks.fire(hook, { uid: uid, tid: tid });
         });
     }
     // The next line calls a function in a module that has not been updated to TS yet
@@ -159,14 +156,14 @@ function FollowTopics(Topics) {
             if (!Array.isArray(tids)) {
                 return;
             }
-            if (parseInt(uid, 10) <= 0) {
+            if (uid <= 0) {
                 return tids.map(() => ({ following: false, ignoring: false }));
             }
             const keys = [];
             tids.forEach(tid => keys.push(`tid:${tid}:followers`, `tid:${tid}:ignorers`));
             // The next line calls a function in a module that has not been updated to TS yet
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-            const data = yield database_1.default.isMemberOfSets(keys, uid);
+            const data = yield db.isMemberOfSets(keys, uid);
             const followData = [];
             for (let i = 0; i < data.length; i += 2) {
                 followData.push({
@@ -183,7 +180,7 @@ function FollowTopics(Topics) {
         return __awaiter(this, void 0, void 0, function* () {
             // The next line calls a function in a module that has not been updated to TS yet
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-            return yield database_1.default.getSetMembers(`tid:${tid}:followers`);
+            return yield db.getSetMembers(`tid:${tid}:followers`);
         });
     };
     // The next line calls a function in a module that has not been updated to TS yet
@@ -192,7 +189,7 @@ function FollowTopics(Topics) {
         return __awaiter(this, void 0, void 0, function* () {
             // The next line calls a function in a module that has not been updated to TS yet
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-            return yield database_1.default.getSetMembers(`tid:${tid}:ignorers`);
+            return yield db.getSetMembers(`tid:${tid}:ignorers`);
         });
     };
     // The next line calls a function in a module that has not been updated to TS yet
@@ -201,7 +198,7 @@ function FollowTopics(Topics) {
         return __awaiter(this, void 0, void 0, function* () {
             // The next line calls a function in a module that has not been updated to TS yet
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-            const isIgnoring = yield database_1.default.isSetMembers(`tid:${tid}:ignorers`, uids);
+            const isIgnoring = yield db.isSetMembers(`tid:${tid}:ignorers`, uids);
             const readingUids = uids.filter((uid, index) => uid && !isIgnoring[index]);
             return readingUids;
         });
@@ -210,12 +207,12 @@ function FollowTopics(Topics) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     Topics.filterWatchedTids = function (tids, uid) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (parseInt(uid, 10) <= 0) {
+            if (uid <= 0) {
                 return [];
             }
             // The next line calls a function in a module that has not been updated to TS yet
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-            const scores = yield database_1.default.sortedSetScores(`uid:${uid}:followed_tids`, tids);
+            const scores = yield db.sortedSetScores(`uid:${uid}:followed_tids`, tids);
             return tids.filter((tid, index) => tid && !!scores[index]);
         });
     };
@@ -223,12 +220,12 @@ function FollowTopics(Topics) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     Topics.filterNotIgnoredTids = function (tids, uid) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (parseInt(uid, 10) <= 0) {
+            if (uid <= 0) {
                 return tids;
             }
             // The next line calls a function in a module that has not been updated to TS yet
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-            const scores = yield database_1.default.sortedSetScores(`uid:${uid}:ignored_tids`, tids);
+            const scores = yield db.sortedSetScores(`uid:${uid}:ignored_tids`, tids);
             return tids.filter((tid, index) => tid && !scores[index]);
         });
     };
@@ -246,7 +243,7 @@ function FollowTopics(Topics) {
             }
             // The next line calls a function in a module that has not been updated to TS yet
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-            followers = (yield privileges_1.default.topics.filterUids('topics:read', postData.topic.tid, followers));
+            followers = (yield privileges.topics.filterUids('topics:read', postData.topic.tid, followers));
             if (!followers.length) {
                 return;
             }
@@ -254,11 +251,11 @@ function FollowTopics(Topics) {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             let { title } = postData.topic;
             if (title) {
-                title = utils_1.default.decodeHTMLEntities(title);
+                title = utils.decodeHTMLEntities(title);
             }
             // The next line calls a function in a module that has not been updated to TS yet
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-            const notification = yield notifications_1.default.create(Object.assign({ subject: title, 
+            const notification = yield notifications.create(Object.assign({ subject: title, 
                 // The next line calls a function in a module that has not been updated to TS yet
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
                 bodyLong: postData.content, 
@@ -271,7 +268,7 @@ function FollowTopics(Topics) {
                 // The next line calls a function in a module that has not been updated to TS yet
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
                 tid: postData.topic.tid, from: exceptUid, topicTitle: title }, notifData));
-            yield notifications_1.default.push(notification, followers);
+            yield notifications.push(notification, followers);
         });
     };
 }

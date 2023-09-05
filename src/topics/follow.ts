@@ -1,8 +1,8 @@
-import db from '../database';
-import notifications from '../notifications';
-import privileges from '../privileges';
-import plugins from '../plugins';
-import utils from '../utils';
+import db = require('../database');
+import notifications = require('../notifications');
+import privileges = require('../privileges');
+import plugins = require('../plugins');
+import utils = require('../utils');
 
 
 async function addToSets(set1, set2, tid, uid) {
@@ -23,27 +23,27 @@ async function removeFromSets(set1, set2, tid, uid) {
     await db.sortedSetRemove(set2, tid);
 }
 
-async function follow(tid: string, uid: string) {
+async function follow(tid: number, uid: number) {
     await addToSets(`tid:${tid}:followers`, `uid:${uid}:followed_tids`, tid, uid);
 }
 
-async function unfollow(tid: string, uid: string) {
+async function unfollow(tid: number, uid: number) {
     await removeFromSets(`tid:${tid}:followers`, `uid:${uid}:followed_tids`, tid, uid);
 }
 
-async function ignore(tid: string, uid: string) {
+async function ignore(tid: number, uid: number) {
     await addToSets(`tid:${tid}:ignorers`, `uid:${uid}:ignored_tids`, tid, uid);
 }
 
-async function unignore(tid: string, uid: string) {
+async function unignore(tid: number, uid: number) {
     await removeFromSets(`tid:${tid}:ignorers`, `uid:${uid}:ignored_tids`, tid, uid);
 }
 
-async function isIgnoringOrFollowing(set: string, tids: string[], uid: string): Promise<boolean[]> {
+async function isIgnoringOrFollowing(set: string, tids: number[], uid: number): Promise<boolean[]> {
     if (!Array.isArray(tids)) {
         return;
     }
-    if (parseInt(uid, 10) <= 0) {
+    if (uid <= 0) {
         return tids.map(() => false);
     }
     const keys = tids.map(tid => `tid:${tid}:${set}`);
@@ -56,8 +56,8 @@ async function isIgnoringOrFollowing(set: string, tids: string[], uid: string): 
 
 
 function FollowTopics(Topics) {
-    async function setWatching(method1, method2, hook, tid: string, uid: string) {
-        if (!(parseInt(uid, 10) > 0)) {
+    async function setWatching(method1, method2, hook, tid: number, uid: number) {
+        if (!(uid > 0)) {
             throw new Error('[[error:not-logged-in]]');
         }
 
@@ -82,7 +82,7 @@ function FollowTopics(Topics) {
 
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    Topics.toggleFollow = async function (tid: string, uid: string) {
+    Topics.toggleFollow = async function (tid: number, uid: number) {
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         const exists = await Topics.exists(tid) as boolean;
@@ -105,37 +105,37 @@ function FollowTopics(Topics) {
     };
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    Topics.follow = async function (tid: string, uid: string) {
+    Topics.follow = async function (tid: number, uid: number) {
         await setWatching(follow, unignore, 'action:topic.follow', tid, uid);
     };
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    Topics.unfollow = async function (tid: string, uid: string) {
+    Topics.unfollow = async function (tid: number, uid: number) {
         await setWatching(unfollow, unignore, 'action:topic.unfollow', tid, uid);
     };
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    Topics.ignore = async function (tid: string, uid: string) {
+    Topics.ignore = async function (tid: number, uid: number) {
         await setWatching(ignore, unfollow, 'action:topic.ignore', tid, uid);
     };
 
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    Topics.isFollowing = async function (tids: string[], uid: string) {
+    Topics.isFollowing = async function (tids: number[], uid: number) {
         return await isIgnoringOrFollowing('followers', tids, uid);
     };
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    Topics.isIgnoring = async function (tids: string[], uid: string) {
+    Topics.isIgnoring = async function (tids: number[], uid: number) {
         return await isIgnoringOrFollowing('ignorers', tids, uid);
     };
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    Topics.getFollowData = async function (tids: string[], uid: string) {
+    Topics.getFollowData = async function (tids: number[], uid: number) {
         if (!Array.isArray(tids)) {
             return;
         }
-        if (parseInt(uid, 10) <= 0) {
+        if (uid <= 0) {
             return tids.map(() => ({ following: false, ignoring: false }));
         }
         const keys = [];
@@ -157,7 +157,7 @@ function FollowTopics(Topics) {
 
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    Topics.getFollowers = async function (tid: string) {
+    Topics.getFollowers = async function (tid: number) {
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         return await db.getSetMembers(`tid:${tid}:followers`) as string[];
@@ -165,7 +165,7 @@ function FollowTopics(Topics) {
 
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    Topics.getIgnorers = async function (tid: string) {
+    Topics.getIgnorers = async function (tid: number) {
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         return await db.getSetMembers(`tid:${tid}:ignorers`) as string[];
@@ -173,7 +173,7 @@ function FollowTopics(Topics) {
 
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    Topics.filterIgnoringUids = async function (tid: string, uids: string[]) {
+    Topics.filterIgnoringUids = async function (tid: number, uids: number[]) {
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         const isIgnoring = await db.isSetMembers(`tid:${tid}:ignorers`, uids) as boolean[];
@@ -183,8 +183,8 @@ function FollowTopics(Topics) {
 
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    Topics.filterWatchedTids = async function (tids: string[], uid: string) {
-        if (parseInt(uid, 10) <= 0) {
+    Topics.filterWatchedTids = async function (tids: number[], uid: number) {
+        if (uid <= 0) {
             return [];
         }
 
@@ -196,8 +196,8 @@ function FollowTopics(Topics) {
 
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    Topics.filterNotIgnoredTids = async function (tids: string[], uid: string) {
-        if (parseInt(uid, 10) <= 0) {
+    Topics.filterNotIgnoredTids = async function (tids: number[], uid: number) {
+        if (uid <= 0) {
             return tids;
         }
         // The next line calls a function in a module that has not been updated to TS yet
@@ -242,13 +242,13 @@ function FollowTopics(Topics) {
             bodyLong: postData.content as string,
             // The next line calls a function in a module that has not been updated to TS yet
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-            pid: postData.pid as string,
+            pid: postData.pid as number,
             // The next line calls a function in a module that has not been updated to TS yet
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             path: `/post/${postData.pid as string}`,
             // The next line calls a function in a module that has not been updated to TS yet
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-            tid: postData.topic.tid as string,
+            tid: postData.topic.tid as number,
             from: exceptUid as string,
             topicTitle: title,
             ...notifData,
@@ -268,9 +268,9 @@ interface NotifData {
 interface Data extends NotifData {
     subject: string;
     bodyLong: string;
-    pid: string;
+    pid: number;
     path: string;
-    tid: string;
+    tid: number;
     from: string;
     topicTitle: string;
 }
