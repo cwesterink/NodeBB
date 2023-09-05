@@ -67,7 +67,7 @@ function isIgnoringOrFollowing(set, tids, uid) {
         return yield db.isMemberOfSets(keys, uid);
     });
 }
-function FollowTopics(Topics) {
+module.exports = function (Topics) {
     function setWatching(method1, method2, hook, tid, uid) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!(uid > 0)) {
@@ -237,7 +237,7 @@ function FollowTopics(Topics) {
             // The next line calls a function in a module that has not been updated to TS yet
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             let followers = yield Topics.getFollowers(postData.topic.tid);
-            const index = followers.indexOf(String(exceptUid));
+            const index = followers.indexOf(exceptUid);
             if (index !== -1) {
                 followers.splice(index, 1);
             }
@@ -271,5 +271,4 @@ function FollowTopics(Topics) {
             yield notifications.push(notification, followers);
         });
     };
-}
-module.exports = FollowTopics;
+};
