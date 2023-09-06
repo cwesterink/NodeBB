@@ -5,13 +5,10 @@ import plugins = require('../plugins');
 import utils = require('../utils');
 
 interface NotifData {
-  type: string,
+  type: string;
   bodyShort: string;
   nid: string;
-  mergeId?: string,
-}
-
-interface Data extends NotifData {
+  mergeId?: string;
   subject: string;
   bodyLong: string;
   pid: number;
@@ -21,6 +18,16 @@ interface Data extends NotifData {
   topicTitle: string;
 }
 
+// interface Data extends NotifData {
+//   subject: string;
+//   bodyLong: string;
+//   pid: number;
+//   path: string;
+//   tid: number;
+//   from: number;
+//   topicTitle: string;
+// }
+
 interface FollowData {
   following: boolean;
   ignoring: boolean;
@@ -28,7 +35,8 @@ interface FollowData {
 
 interface PostData {
   topic: {
-    tid: number
+    tid: number;
+    title: string | undefined;
   };
   content: string;
   pid: number;
@@ -52,7 +60,7 @@ interface TopicsI {
 }
 
 module.exports = function (Topics: TopicsI) {
-    async function addToSets(set1, set2, tid, uid) {
+    async function addToSets(set1, set2, tid: number, uid: number) {
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         await db.setAdd(set1, uid);
@@ -61,7 +69,7 @@ module.exports = function (Topics: TopicsI) {
         await db.sortedSetAdd(set2, Date.now(), tid);
     }
 
-    async function removeFromSets(set1, set2, tid, uid) {
+    async function removeFromSets(set1, set2, tid: number, uid: number) {
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         await db.setRemove(set1, uid);
@@ -104,7 +112,7 @@ module.exports = function (Topics: TopicsI) {
             throw new Error('[[error:not-logged-in]]');
         }
 
-        const exists = await Topics.exists(tid) as boolean;
+        const exists = await Topics.exists(tid);
         if (!exists) {
             throw new Error('[[error:no-topic]]');
         }
@@ -210,6 +218,7 @@ module.exports = function (Topics: TopicsI) {
         if (uid <= 0) {
             return tids;
         }
+
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         const scores: (number | null)[] = await db.sortedSetScores(`uid:${uid}:ignored_tids`, tids) as (number | null)[];
@@ -217,8 +226,6 @@ module.exports = function (Topics: TopicsI) {
     };
 
     Topics.notifyFollowers = async function (postData: PostData, exceptUid: number, notifData: NotifData) {
-        notifData = notifData || {} as NotifData;
-
         let followers = await Topics.getFollowers(postData.topic.tid);
         const index = followers.indexOf(exceptUid);
         if (index !== -1) {
@@ -230,7 +237,7 @@ module.exports = function (Topics: TopicsI) {
             return;
         }
 
-        let { title } = postData.topic as { title?: string};
+        let { title } = postData.topic;
         if (title) {
             title = utils.decodeHTMLEntities(title);
         }
@@ -244,7 +251,7 @@ module.exports = function (Topics: TopicsI) {
             from: exceptUid,
             topicTitle: title,
             ...notifData,
-        } as Data) as Data;
+        } as NotifData) as NotifData;
 
         await notifications.push(notification, followers);
     };

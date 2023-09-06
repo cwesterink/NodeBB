@@ -198,7 +198,6 @@ module.exports = function (Topics) {
     };
     Topics.notifyFollowers = function (postData, exceptUid, notifData) {
         return __awaiter(this, void 0, void 0, function* () {
-            notifData = notifData || {};
             let followers = yield Topics.getFollowers(postData.topic.tid);
             const index = followers.indexOf(exceptUid);
             if (index !== -1) {
