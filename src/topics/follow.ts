@@ -20,16 +20,6 @@ interface NotifData {
 
 type Method = (tid: number, uid: number) => Promise<void>;
 
-// interface Data extends NotifData {
-//   subject: string;
-//   bodyLong: string;
-//   pid: number;
-//   path: string;
-//   tid: number;
-//   from: number;
-//   topicTitle: string;
-// }
-
 interface FollowData {
   following: boolean;
   ignoring: boolean;
