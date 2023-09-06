@@ -78,11 +78,7 @@ module.exports = function (Topics) {
             if (!exists) {
                 throw new Error('[[error:no-topic]]');
             }
-            // The next line calls a function in a module that has not been updated to TS yet
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             yield method1(tid, uid);
-            // The next line calls a function in a module that has not been updated to TS yet
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             yield method2(tid, uid);
             yield plugins.hooks.fire(hook, { uid: uid, tid: tid });
         });

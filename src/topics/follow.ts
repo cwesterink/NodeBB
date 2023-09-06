@@ -18,6 +18,8 @@ interface NotifData {
   topicTitle: string;
 }
 
+type Method = (tid: number, uid: number) => Promise<void>;
+
 // interface Data extends NotifData {
 //   subject: string;
 //   bodyLong: string;
@@ -60,7 +62,7 @@ interface TopicsI {
 }
 
 module.exports = function (Topics: TopicsI) {
-    async function addToSets(set1, set2, tid: number, uid: number) {
+    async function addToSets(set1: string, set2: string, tid: number, uid: number) {
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         await db.setAdd(set1, uid);
@@ -69,7 +71,7 @@ module.exports = function (Topics: TopicsI) {
         await db.sortedSetAdd(set2, Date.now(), tid);
     }
 
-    async function removeFromSets(set1, set2, tid: number, uid: number) {
+    async function removeFromSets(set1: string, set2: string, tid: number, uid: number) {
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         await db.setRemove(set1, uid);
@@ -107,7 +109,7 @@ module.exports = function (Topics: TopicsI) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         return await db.isMemberOfSets(keys, uid) as boolean[];
     }
-    async function setWatching(method1, method2, hook, tid: number, uid: number) {
+    async function setWatching(method1: Method, method2: Method, hook, tid: number, uid: number) {
         if (!(uid > 0)) {
             throw new Error('[[error:not-logged-in]]');
         }
@@ -116,11 +118,8 @@ module.exports = function (Topics: TopicsI) {
         if (!exists) {
             throw new Error('[[error:no-topic]]');
         }
-        // The next line calls a function in a module that has not been updated to TS yet
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+
         await method1(tid, uid);
-        // The next line calls a function in a module that has not been updated to TS yet
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         await method2(tid, uid);
         await plugins.hooks.fire(hook, { uid: uid, tid: tid });
     }
@@ -210,7 +209,7 @@ module.exports = function (Topics: TopicsI) {
 
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        const scores: (number | null)[] = await db.sortedSetScores(`uid:${uid}:followed_tids`, tids) as (number | null)[];
+        const scores = await db.sortedSetScores(`uid:${uid}:followed_tids`, tids) as (number | null)[];
         return tids.filter((tid, index) => tid && !!scores[index]);
     };
 
