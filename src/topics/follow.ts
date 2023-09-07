@@ -99,7 +99,7 @@ module.exports = function (Topics: TopicsI) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         return await db.isMemberOfSets(keys, uid) as boolean[];
     }
-    async function setWatching(method1: Method, method2: Method, hook, tid: number, uid: number) {
+    async function setWatching(method1: Method, method2: Method, hook: string, tid: number, uid: number) {
         if (!(uid > 0)) {
             throw new Error('[[error:not-logged-in]]');
         }
