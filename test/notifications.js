@@ -260,7 +260,6 @@ describe('Notifications', () => {
                 tid = topic.topicData.tid;
 
                 topics.follow(tid, watcherUid, next);
-                done();
             },
             function (next) {
                 topics.reply({
